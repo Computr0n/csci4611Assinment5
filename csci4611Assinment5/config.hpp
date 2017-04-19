@@ -21,7 +21,7 @@ namespace Config {
     const std::string specularRamp = dataDir + "/standardSpecular.bmp";
 
     // Shader parameters.
-    // TODO: Pass them into your shaders using uniform variables.
+    // DONE?: Pass them into your shaders using uniform variables.
 
     // Lighting
     glm::vec4 Ia(0.3, 0.3, 0.3, 1);

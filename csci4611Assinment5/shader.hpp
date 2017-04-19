@@ -49,29 +49,61 @@ inline ShaderProgram::ShaderProgram(std::string vertFile, std::string fragFile) 
     Engine::dieIfOpenGLError();
 }
 
+//Modified the loadShader Function to allow for recompilation
+//here's the original code:
+
+//inline GLuint ShaderProgram::loadShader(GLenum type, std::string filename) {
+//	std::fstream file(filename, std::ios::in);
+//	if (!file) {
+//		Engine::errorMessage("Failed to load file " + filename);
+//		exit(EXIT_FAILURE);
+//	}
+//	std::stringstream sstr;
+//	sstr << file.rdbuf();
+//	std::string str = sstr.str();
+//	const char* source = str.c_str();
+//	GLuint shader = glCreateShader(type);
+//	glShaderSource(shader, 1, &source, NULL);
+//	glCompileShader(shader);
+//	GLint status;
+//	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+//	if (status != GL_TRUE) {
+//		char infolog[512];
+//		glGetShaderInfoLog(shader, 512, NULL, infolog);
+//		Engine::errorMessage("Compilation of shader " + filename + " failed:\n" + infolog);
+//		exit(EXIT_FAILURE);
+//	}
+//	Engine::dieIfOpenGLError();
+//	return shader;
+//}
+
+
+// Vlad's reloadable version
 inline GLuint ShaderProgram::loadShader(GLenum type, std::string filename) {
-    std::fstream file(filename, std::ios::in);
-    if (!file) {
-        Engine::errorMessage("Failed to load file " + filename);
-        exit(EXIT_FAILURE);
-    }
-    std::stringstream sstr;
-    sstr << file.rdbuf();
-    std::string str = sstr.str();
-    const char* source = str.c_str();
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-    GLint status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (status != GL_TRUE) {
-        char infolog[512];
-        glGetShaderInfoLog(shader, 512, NULL, infolog);
-        Engine::errorMessage("Compilation of shader " + filename + " failed:\n" + infolog);
-        exit(EXIT_FAILURE);
-    }
-    Engine::dieIfOpenGLError();
-    return shader;
+	while (true) {
+		std::fstream file(filename, std::ios::in);
+		if (!file) {
+			Engine::errorMessage("Failed to load file " + filename);
+			exit(EXIT_FAILURE);
+		}
+		std::stringstream sstr;
+		sstr << file.rdbuf();
+		std::string str = sstr.str();
+		const char* source = str.c_str();
+		GLuint shader = glCreateShader(type);
+		glShaderSource(shader, 1, &source, NULL);
+		glCompileShader(shader);
+		GLint status;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+		if (status != GL_TRUE) {
+			char infolog[512];
+			glGetShaderInfoLog(shader, 512, NULL, infolog);
+			Engine::errorMessage("Compilation of shader " + filename + " failed:\n" + infolog);
+		} else {
+			//Engine::dieIfOpenGLError();
+			return shader;
+		}
+	}
 }
 
 inline void ShaderProgram::setAttribute(std::string name, VertexBuffer buffer, int dim, GLenum type) {

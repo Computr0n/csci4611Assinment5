@@ -70,6 +70,8 @@ public:
             handleInput();
             drawGraphics();
             waitForNextFrame(dt);
+			// TODO: Remove this live reloader in final shipping proj:
+				reloadShaders();
         }
     }
 
@@ -103,8 +105,37 @@ public:
         phongProgram.setUniform("modelViewMatrix", getMatrix(GL_MODELVIEW));
         phongProgram.setUniform("normalMatrix", glm::inverse(glm::transpose(getMatrix(GL_MODELVIEW))));
         phongProgram.setUniform("projectionMatrix", getMatrix(GL_PROJECTION));
-        // TODO: Pass the relevant parameters from Config into your shader
+
+
+		//-------------------------------------------------------------------
+        // DONE?: Pass the relevant parameters from Config into your shader
         // using uniform variables.
+
+		Texture diffuseRamp = loadTexture(Config::diffuseRamp);
+		phongProgram.setTexture("diffuseRamp", diffuseRamp, 0);
+		Texture specularRamp = loadTexture(Config::specularRamp);
+		phongProgram.setTexture("specularRamp", specularRamp, 0);
+
+		phongProgram.setUniform("Ia",			Config::Ia);
+		phongProgram.setUniform("Id",			Config::Id);
+		phongProgram.setUniform("Is",			Config::Is);
+
+		phongProgram.setUniform("ka",			Config::ka);
+		phongProgram.setUniform("kd",			Config::kd);
+		phongProgram.setUniform("ks",			Config::ks);
+
+		phongProgram.setUniform("s", Config::s);
+
+
+		phongProgram.setUniform("lightPosition", lightPosition);
+		phongProgram.setUniform("cameraPosition", glm::normalize(camera.getCenter()));
+		
+
+		phongProgram.setUniform("thickness", Config::thickness);
+
+		phongProgram.setUniform("lightInViewSpace", lightInViewSpace);
+		//-------------------------------------------------------------------
+
         phongProgram.setAttribute("vertex", mesh.vertexBuffer, 3, GL_FLOAT);
         phongProgram.setAttribute("normal", mesh.normalBuffer, 3, GL_FLOAT);
         drawElements(GL_TRIANGLES, mesh.indexBuffer, mesh.triangles.size()*3);
