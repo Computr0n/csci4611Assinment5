@@ -28,7 +28,7 @@ public:
     ShaderProgram silhouetteProgram;
 
     MyApp() {
-        window = createWindow("4611", 640, 360);
+        window = createWindow("4611", 1280, 720);
         camera = OrbitCamera(2.5, 0, 0, Perspective(30, 16/9., 1, 20));
         // Put the light in a nice position in camera space.
         // Press L to reset it to the camera position. This way you can
@@ -163,7 +163,8 @@ public:
 
         // Draw edge mesh
         silhouetteProgram.enable();
-        silhouetteProgram.setUniform("modelViewMatrix", getMatrix(GL_MODELVIEW));
+		glm::mat4 modelViewMatrix = getMatrix(GL_MODELVIEW);
+        silhouetteProgram.setUniform("modelViewMatrix", modelViewMatrix);
         silhouetteProgram.setUniform("normalMatrix", glm::inverse(glm::transpose(getMatrix(GL_MODELVIEW))));
         silhouetteProgram.setUniform("projectionMatrix", getMatrix(GL_PROJECTION));
         silhouetteProgram.setUniform("thickness", Config::thickness);
