@@ -19,15 +19,16 @@ public:
     SDL_Window *window;
     OrbitCamera camera;
     vec3 lightPosition;
+	int style = 1;
 
     Mesh mesh;
     EdgeMesh edgeMesh;
     ShaderProgram phongProgram;
-    Texture diffuseRamp, specularRamp;
+    Texture diffuseRamp, specularRamp, toondiffuseRamp, toonspecularRamp;
     ShaderProgram silhouetteProgram;
 
     MyApp() {
-        window = createWindow("4611", 1280, 720);
+        window = createWindow("4611", 640, 360);
         camera = OrbitCamera(2.5, 0, 0, Perspective(30, 16/9., 1, 20));
         // Put the light in a nice position in camera space.
         // Press L to reset it to the camera position. This way you can
@@ -42,12 +43,18 @@ public:
         // Load the diffuse and specular ramps. We set the texture wrap mode
         // to "clamp" to prevent texels from the leftmost column from being
         // blended with those from the rightmost column.
-        diffuseRamp = loadTexture(Config::diffuseRamp);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        specularRamp = loadTexture(Config::specularRamp);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		diffuseRamp = loadTexture(Config::diffuseRamp);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		specularRamp = loadTexture(Config::specularRamp);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		toondiffuseRamp = loadTexture(Config::toondiffuseRamp);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		toonspecularRamp = loadTexture(Config::toonspecularRamp);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         // Load the vertex and fragment shaders. Since you don't need to
         // recompile the C++ program to reload shaders, you can even do this
         // interactively as you debug your shaders! Press 'R' to reload the
@@ -82,8 +89,20 @@ public:
     void onKeyDown(SDL_KeyboardEvent &e) {
         if (e.keysym.scancode == SDL_SCANCODE_L)
             lightPosition = camera.getEye();
-        if (e.keysym.scancode == SDL_SCANCODE_R)
-            reloadShaders();
+		if (e.keysym.scancode == SDL_SCANCODE_R)
+			reloadShaders();
+		if (e.keysym.scancode == SDL_SCANCODE_1) {
+			style = 1;
+			reloadShaders();
+		}
+		if (e.keysym.scancode == SDL_SCANCODE_2) {
+			style = 2;
+			reloadShaders();
+		}
+		if (e.keysym.scancode == SDL_SCANCODE_3) {
+			style = 3;
+			reloadShaders();
+		}
     }
 
     void drawGraphics() {
@@ -104,17 +123,18 @@ public:
         phongProgram.enable();
         phongProgram.setUniform("modelViewMatrix", getMatrix(GL_MODELVIEW));
         phongProgram.setUniform("normalMatrix", glm::inverse(glm::transpose(getMatrix(GL_MODELVIEW))));
-        phongProgram.setUniform("projectionMatrix", getMatrix(GL_PROJECTION));
+		phongProgram.setUniform("projectionMatrix", getMatrix(GL_PROJECTION));
+		phongProgram.setUniform("style", style);
 
 
 		//-------------------------------------------------------------------
         // DONE?: Pass the relevant parameters from Config into your shader
         // using uniform variables.
 
-		Texture diffuseRamp = loadTexture(Config::diffuseRamp);
-		phongProgram.setTexture("diffuseRamp", diffuseRamp, 0);
-		Texture specularRamp = loadTexture(Config::specularRamp);
-		phongProgram.setTexture("specularRamp", specularRamp, 0);
+		phongProgram.setTexture("dRamp", diffuseRamp, 0);
+		phongProgram.setTexture("sRamp", specularRamp, 1);
+		phongProgram.setTexture("toonDRamp", toondiffuseRamp, 2);
+		phongProgram.setTexture("toonSRamp", toonspecularRamp, 3);
 
 		phongProgram.setUniform("Ia",			Config::Ia);
 		phongProgram.setUniform("Id",			Config::Id);

@@ -16,9 +16,11 @@ namespace Config {
     const std::string silhouetteFrag = codeDir + "/silhouette.frag";
 
     // Mesh and ramps
-    const std::string mesh = dataDir + "/cow.obj";
-    const std::string diffuseRamp = dataDir + "/standardDiffuse.bmp";
-    const std::string specularRamp = dataDir + "/standardSpecular.bmp";
+    const std::string mesh = dataDir + "/sphere.obj";
+	const std::string diffuseRamp = dataDir +		"/standardDiffuse.bmp";
+	const std::string specularRamp = dataDir +		"/standardSpecular.bmp";
+	const std::string toondiffuseRamp = dataDir +	"/toonDiffuse.bmp";
+	const std::string toonspecularRamp = dataDir +	"/toonSpecular.bmp";
 
     // Shader parameters.
     // DONE?: Pass them into your shaders using uniform variables.

@@ -3,10 +3,13 @@
 uniform mat4 modelViewMatrix;
 uniform mat4 normalMatrix;
 uniform mat4 projectionMatrix;
-uniform vec4 lightInEyeSpace;
+uniform vec4 lightInViewSpace;
+uniform int style; //1 for analytic blinn phong, 2 for ramped Blinn-Phong. 3 for TOON
 
-uniform sampler2D diffuseRamp; 
-uniform sampler2D specularRamp;
+uniform sampler2D dRamp; 
+uniform sampler2D sRamp;
+uniform sampler2D toonDRamp; 
+uniform sampler2D toonSRamp;
 
 uniform vec4 Ia; 		 //(0.3, 0.3, 0.3, 1)
 uniform vec4 Id; 		 //(0.7, 0.7, 0.7, 1)
@@ -22,54 +25,48 @@ uniform vec3 lightPosition;
 uniform vec3 cameraPosition;
 
 out vec4 color;
-in vec3 vNormal;
-in vec3 vPosition;
+
+
+in vec3 interpPosition;
+in vec3 interpNormal;
+in vec3 vertexInEyeSpace;
 
 void main() {
 
     // We'll start with black, then add various lighting terms to it
     // as we calculate them.
-    vec4 finalColor = vec4(0.0, 0.0, 0.0, 1.0);
 
-    vec3 vertexInEyeSpace = (modelViewMatrix*vec4(vPosition,1)).xyz;
-    vec3 n = (normalMatrix*vec4(vNormal,0)).xyz;
-    vec3 l = normalize((modelViewMatrix * vec4(lightPosition,1)).xyz - vertexInEyeSpace);
+    //vec3 n = (normalMatrix*vec4(interpNormal,0)).xyz;
+    vec3 n = normalize((normalMatrix*vec4(interpNormal,0)).xyz);
+    vec3 l = normalize(lightInViewSpace.xyz - vertexInEyeSpace);
     vec3 e = normalize(-vertexInEyeSpace);
     vec3 h = normalize(l + e);
+
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+
+    	 if(style == 1){ 
+    	ambient 	= ka*Ia;														//ambient 	component
+		diffuse 	= kd*Id*texture(toonDRamp, vec2((0.5 * (dot(n,l)) +0.5)));		//diffuse 	component
+		specular 	= ks*Is*texture(toonSRamp, vec2(pow(max(dot(n,h), 0.0), s))); 	//specular 	component using half vector
+	}
+    else if(style == 2){ 
+    	ambient 	= ka*Ia;													//ambient 	component
+		diffuse 	= kd*Id*texture(dRamp, vec2((0.5 * (dot(n,l)) +0.5)));		//diffuse 	component
+		specular 	= ks*Is*texture(sRamp, vec2(pow(max(dot(n,h), 0.0), s))); 	//specular 	component using half vector
+	}
+    else if(style == 3){ 
+		ambient 	= ka*Ia;							//ambient 	component
+		diffuse 	= kd*Id*(max(dot(n,l), 0.0));		//diffuse 	component
+		specular 	= ks*Is*pow(max(dot(n,h), 0.0), s); //specular 	component using half vector
+	} 
 	
-    // vec3 h = normalize()
-
-    //gross BlinnPhong/non-energy-conserving/non-PBR lighting
-
-	    // TODO: Calculate ambient, diffuse, and specular lighting for this pixel
-	    // based on its position, normal, etc.
-	    finalColor += ka*Ia;
-	    finalColor += kd*Id*max(dot(n,l), 0.0);
-	    finalColor += ks*Is*pow(max(dot(n,h), 0.0), s);
-
-	    
-
-	    // Use the R,G,B components of finalColor for the output color of this
-	    // fragment, and set the alpha component to 1.0 (completely opaque).
-	    color.rgb = finalColor.rgb;
-	    color.a = 1.0;
-
+	color.rgb = vec3(  ambient + diffuse + specular );
 }
 
 // Easy first step: Set color = normal.  Actually color = 0.5*(normal + 1) is better. Does the result make sense? 
 // • This can be a handy way to debug whether your vectors are correct.
-
-
-
-    // color.rgba = Ia;
-    // color.rgba = Id;
-    // color.rgba = Is;
-    // color.rgba = ka;
-    // color.rgba = kd;
-    // color.rgba = ks;
-    // color.rgb = vec3(s);
-    // color.rgb = vec3(thickness);
-
 
 		// from slides TODO VLAD: 
 	    // vec4 color = texture(name, vec2(u, v));
